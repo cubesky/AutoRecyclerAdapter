@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,9 +23,8 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.context = context;
     }
     private ArrayList<AutoDataBean> dataList = new ArrayList<>();
-    private HashMap<Class<? extends AutoDataBean>, Integer> dataViewIDMap = new HashMap<>();
+    private HashMap<Class<? extends AutoDataBean>, IDLayoutBean> dataViewMap = new HashMap<>();
     private ArrayList<Class<? extends AutoDataBean>> dataViewIDList = new ArrayList<>();
-    private HashMap<Class<? extends AutoDataBean>, Integer> dataViewLayoutMap = new HashMap<>();
 
 
     @NonNull
@@ -32,7 +32,7 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater mInflater = LayoutInflater.from(context);
         Class beanClass = dataViewIDList.get(viewType);
-        View v = mInflater.inflate(dataViewLayoutMap.get(beanClass), parent, false);
+        View v = mInflater.inflate(dataViewMap.get(beanClass).getLayout(), parent, false);
         return new GeneralViewHolder(v);
     }
 
@@ -41,7 +41,7 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         AutoDataBean bean = dataList.get(position);
         Field[] fields = bean.getClass().getDeclaredFields();
         for (Field field : fields) {
-            AutoDataBeanAnnotation annotation = field.getAnnotation(AutoDataBeanAnnotation.class);
+            AutoBind annotation = field.getAnnotation(AutoBind.class);
             if (annotation == null) continue;
             try {
                 boolean fieldAccessible = field.isAccessible();
@@ -58,9 +58,29 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 boolean methodAccessible = viewMethod.isAccessible();
                 viewMethod.setAccessible(true);
                 if("".equals(annotation.wrapTo())) {
-                    viewMethod.invoke(v, obj);
+                    if (obj.getClass().isArray()) {
+                        ArrayList<Object> unpackArray = new ArrayList<>();
+                        int length = Array.getLength(obj);
+                        for (int i = 0; i < length; i ++) unpackArray.add(Array.get(obj, i));
+                        viewMethod.invoke(v, unpackArray.toArray());
+                    } else {
+                        viewMethod.invoke(v, obj);
+                    }
                 }else{
-                    viewMethod.invoke(v, context.getResources().getIdentifier(obj.toString(), annotation.wrapTo(), context.getPackageName()));
+                    if (obj.getClass().isArray()) {
+                        ArrayList<Object> unpackArray = new ArrayList<>();
+                        int length = Array.getLength(obj);
+                        for (int i = 0; i < length; i ++) {
+                            Object arrayElement = Array.get(obj, i);
+                            if (arrayElement.getClass() == String.class) {
+                                arrayElement = context.getResources().getIdentifier(obj.toString(), annotation.wrapTo(), context.getPackageName());
+                            }
+                            unpackArray.add(arrayElement);
+                        }
+                        viewMethod.invoke(v, unpackArray.toArray());
+                    } else {
+                        viewMethod.invoke(v, context.getResources().getIdentifier(obj.toString(), annotation.wrapTo(), context.getPackageName()));
+                    }
                 }
                 viewMethod.setAccessible(methodAccessible);
             } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -71,12 +91,27 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemViewType(int position) {
-        return dataViewIDMap.get(dataList.get(position).getClass());
+        return dataViewMap.get(dataList.get(position).getClass()).getId();
     }
 
     @Override
     public int getItemCount() {
         return dataList.size();
+    }
+
+    private class IDLayoutBean {
+        private int id;
+        private int layout;
+        IDLayoutBean(int id, int layout) {
+            this.id = id;
+            this.layout = layout;
+        }
+        public int getId() {
+            return id;
+        }
+        public int getLayout() {
+            return layout;
+        }
     }
 
     protected class GeneralViewHolder extends RecyclerView.ViewHolder {
@@ -86,8 +121,8 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public void bindView(Class<? extends AutoDataBean> bean, int layout_id) {
-        dataViewIDMap.put(bean, dataViewIDMap.size());
-        dataViewLayoutMap.put(bean, layout_id);
+        IDLayoutBean idLayoutBean = new IDLayoutBean(dataViewIDList.size(), layout_id);
+        dataViewMap.put(bean, idLayoutBean);
         dataViewIDList.add(bean);
     }
 
