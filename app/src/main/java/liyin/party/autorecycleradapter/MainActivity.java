@@ -31,22 +31,14 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(llm);
         autoRecyclerAdapter = new AutoRecyclerAdapter(this);
-        recyclerView.setAdapter(autoRecyclerAdapter);
 
+        recyclerView.setAdapter(autoRecyclerAdapter);
         autoRecyclerAdapter.bindView(OneDataBean.class, R.layout.layout_one);
         autoRecyclerAdapter.bindView(TwoDataBean.class, R.layout.layout_two);
         autoRecyclerAdapter.bindView(ThreeDataBean.class, R.layout.layout_three);
-
-        autoRecyclerAdapter.addData(new OneDataBean("1T", TypedValue.COMPLEX_UNIT_PX, 30f));
-        autoRecyclerAdapter.addData(new TwoDataBean("2B",listener));
-        autoRecyclerAdapter.addData(new OneDataBean("3T", TypedValue.COMPLEX_UNIT_SP, 20f));
-        autoRecyclerAdapter.addData(new ThreeDataBean("ic_battery_charging_full_black_24dp"));
-        autoRecyclerAdapter.addData(new TwoDataBean("4B",listener));
-        autoRecyclerAdapter.addData(new TwoDataBean("5B",listener));
-        autoRecyclerAdapter.addData(new ThreeDataBean("ic_assessment_black_24dp"));
-new TextView(this).setTextSize(TypedValue.COMPLEX_UNIT_PX, 15f);
+        autoRecyclerAdapter.addData(new OneDataBean("1T", TypedValue.COMPLEX_UNIT_PX, 30f),new TwoDataBean("2B",listener),new OneDataBean("3T", TypedValue.COMPLEX_UNIT_SP, 20f),
+                new ThreeDataBean("ic_battery_charging_full_black_24dp"),new TwoDataBean("4B",listener),new TwoDataBean("5B",listener),new ThreeDataBean("ic_assessment_black_24dp"));
     }
-
     class OneDataBean extends AutoDataBean {
         @AutoBind(view_id = "textView",view_method = "setText",view_param = CharSequence.class)
         protected String data;
@@ -61,7 +53,7 @@ new TextView(this).setTextSize(TypedValue.COMPLEX_UNIT_PX, 15f);
         @AutoBind(view_id = "button",view_method = "setText",view_param = CharSequence.class)
         protected String data;
         @AutoBind(view_id = "button",view_method = "setOnClickListener",view_param = View.OnClickListener.class)
-        protected View.OnClickListener onClickListener;
+        View.OnClickListener onClickListener;
         TwoDataBean(String data, View.OnClickListener onClickListener) {
             this.data = data;
             this.onClickListener = onClickListener;
