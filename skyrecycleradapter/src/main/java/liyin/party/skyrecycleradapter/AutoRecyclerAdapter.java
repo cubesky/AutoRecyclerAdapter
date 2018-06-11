@@ -1,5 +1,6 @@
 package liyin.party.skyrecycleradapter;
 
+import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -17,8 +18,13 @@ import java.util.List;
 
 public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private Context context;
+    private Activity activity = null;
     public AutoRecyclerAdapter(Context context) {
         this.context = context;
+    }
+    public AutoRecyclerAdapter(Activity activity) {
+        this.activity = activity;
+        this.context = activity;
     }
     private ArrayList<AutoDataBean> dataList = new ArrayList<>();
     private HashMap<Class<? extends AutoDataBean>, IDLayoutBean> dataViewMap = new HashMap<>();
@@ -123,7 +129,16 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @SuppressWarnings("WeakerAccess")
     public void addData(List<? extends AutoDataBean> beanList) {
-        dataList.addAll(beanList);
+        if (this.activity == null){
+            dataList.addAll(beanList);
+        } else {
+            ArrayList<AutoDataBean> flatbeanList = new ArrayList<>();
+            for (AutoDataBean autoDataBean : beanList) {
+                autoDataBean.activity = this.activity;
+                flatbeanList.add(autoDataBean);
+            }
+            dataList.addAll(flatbeanList);
+        }
         notifyDataSetChanged();
     }
 
