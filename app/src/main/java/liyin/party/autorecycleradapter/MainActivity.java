@@ -13,6 +13,7 @@ import android.widget.Toast;
 import liyin.party.skyrecycleradapter.AutoDataBean;
 import liyin.party.skyrecycleradapter.AutoBind;
 import liyin.party.skyrecycleradapter.AutoRecyclerAdapter;
+import liyin.party.skyrecycleradapter.EmptyDataBean;
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         autoRecyclerAdapter.bindView(ThreeDataBean.class, R.layout.layout_three);
         autoRecyclerAdapter.addData(new OneDataBean("1T", TypedValue.COMPLEX_UNIT_PX, 30f),new TwoDataBean("2B"),new OneDataBean("3T", TypedValue.COMPLEX_UNIT_SP, 20f),
                 new ThreeDataBean("ic_battery_charging_full_black_24dp"),new TwoDataBean("4B"),new TwoDataBean("5B"),new ThreeDataBean("ic_assessment_black_24dp"));
+        autoRecyclerAdapter.addData(EmptyDataBean.getEmptyLayout(R.layout.layout_empty_one), EmptyDataBean.getEmptyLayout(R.layout.layout_empty_two), EmptyDataBean.getEmptyLayout(R.layout.layout_empty_one));
     }
     class OneDataBean extends AutoDataBean {
         @AutoBind(view_id = "textView",view_method = "setText",view_param = CharSequence.class)

@@ -35,6 +35,7 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater mInflater = LayoutInflater.from(context);
+        if (viewType < 0) return new GeneralViewHolder(mInflater.inflate(EmptyDataBean.empty_layout.get(viewType), parent,false));
         Class beanClass = dataViewIDList.get(viewType);
         View v = mInflater.inflate(dataViewMap.get(beanClass).getLayout(), parent, false);
         return new GeneralViewHolder(v);
@@ -43,6 +44,7 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         AutoDataBean bean = dataList.get(position);
+        if (bean instanceof EmptyDataBean) return;
         Field[] fields = bean.getClass().getDeclaredFields();
         for (Field field : fields) {
             AutoBind annotation = field.getAnnotation(AutoBind.class);
@@ -88,7 +90,9 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
     @Override
     public int getItemViewType(int position) {
-        return dataViewMap.get(dataList.get(position).getClass()).getId();
+        AutoDataBean bean = dataList.get(position);
+        if (bean instanceof EmptyDataBean) return ((EmptyDataBean)bean).layout_type;
+        return dataViewMap.get(bean.getClass()).getId();
     }
 
     @Override
