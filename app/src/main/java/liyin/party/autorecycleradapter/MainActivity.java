@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import liyin.party.skyrecycleradapter.AutoBindView;
 import liyin.party.skyrecycleradapter.AutoDataBean;
 import liyin.party.skyrecycleradapter.AutoBind;
 import liyin.party.skyrecycleradapter.AutoRecyclerAdapter;
@@ -32,13 +33,14 @@ public class MainActivity extends AppCompatActivity {
         autoRecyclerAdapter = new AutoRecyclerAdapter(this);
 
         recyclerView.setAdapter(autoRecyclerAdapter);
-        autoRecyclerAdapter.bindView(OneDataBean.class, R.layout.layout_one);
-        autoRecyclerAdapter.bindView(TwoDataBean.class, R.layout.layout_two);
-        autoRecyclerAdapter.bindView(ThreeDataBean.class, R.layout.layout_three);
+//        autoRecyclerAdapter.bindView(OneDataBean.class, R.layout.layout_one);
+//        autoRecyclerAdapter.bindView(TwoDataBean.class, R.layout.layout_two);
+//        autoRecyclerAdapter.bindView(ThreeDataBean.class, R.layout.layout_three);
         autoRecyclerAdapter.addData(new OneDataBean("1T", TypedValue.COMPLEX_UNIT_PX, 30f),new TwoDataBean("2B"),new OneDataBean("3T", TypedValue.COMPLEX_UNIT_SP, 20f),
                 new ThreeDataBean("ic_battery_charging_full_black_24dp"),new TwoDataBean("4B"),new TwoDataBean("5B"),new ThreeDataBean("ic_assessment_black_24dp"));
         autoRecyclerAdapter.addData(EmptyDataBean.getEmptyLayout(R.layout.layout_empty_one), EmptyDataBean.getEmptyLayout(R.layout.layout_empty_two), EmptyDataBean.getEmptyLayout(R.layout.layout_empty_one));
     }
+    @AutoBindView(R.layout.layout_one)
     class OneDataBean extends AutoDataBean {
         @AutoBind(view_id = "textView",view_method = "setText",view_param = CharSequence.class)
         protected String data;
@@ -49,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
             this.size = new Object[]{unit, size};
         }
     }
+    @AutoBindView(R.layout.layout_two)
     class TwoDataBean extends AutoDataBean {
         @AutoBind(view_id = "button",view_method = "setText",view_param = CharSequence.class)
         protected String data;
@@ -63,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
             this.data = data;
         }
     }
+    @AutoBindView(R.layout.layout_three)
     class ThreeDataBean extends AutoDataBean {
         @AutoBind(view_id = "imageView",view_method = "setImageResource",view_param = int.class, wrapTo = "drawable")
         protected String id;

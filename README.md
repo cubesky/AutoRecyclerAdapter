@@ -29,7 +29,7 @@ class DataCardBean extends AutoDataBean {
             this.data = data;
             this.size = new Object[]{unit, size};
         }
-    }
+}
 ```
 
 And now, you need bind them together.  
@@ -37,6 +37,22 @@ And now, you need bind them together.
 ```java
 autoRecyclerAdapter.bindView(DataCardBean.class, R.layout.datacard);
 ```
+
+**After Version 0.6, you can use @AutoBindView for AutoDataBean**  
+```java
+@AutoBindView(R.layout.datacard)
+class DataCardBean extends AutoDataBean {
+        @AutoBind(view_id = "xxxTextView",view_method = "setText",view_param = CharSequence.class)
+        protected String data;
+        @AutoBind(view_id = "xxxTextView", view_method = "setTextSize", view_param = {int.class, float.class})
+        protected Object[] size;
+        OneDataBean(String data, int unit, float size) {
+            this.data = data;
+            this.size = new Object[]{unit, size};
+        }
+}
+```  
+No need to call `adapter.bindView` Method!  
 
 After, you can use  
 

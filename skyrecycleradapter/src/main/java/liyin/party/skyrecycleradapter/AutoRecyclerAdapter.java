@@ -92,6 +92,8 @@ public class AutoRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public int getItemViewType(int position) {
         AutoDataBean bean = dataList.get(position);
         if (bean instanceof EmptyDataBean) return ((EmptyDataBean)bean).layout_type;
+        AutoBindView autoAnnotation = bean.getClass().getAnnotation(AutoBindView.class);
+        if ((!dataViewMap.containsKey(bean.getClass())) && autoAnnotation != null) bindView(bean.getClass(), autoAnnotation.value());
         return dataViewMap.get(bean.getClass()).getId();
     }
 
