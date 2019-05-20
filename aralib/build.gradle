@@ -1,0 +1,23 @@
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_7
+targetCompatibility = JavaVersion.VERSION_1_7
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId 'party.liyin'
+            artifactId 'aralib'
+            version '1.0'
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url 'D:\\Development\\WorkSpace\\GitSpace\\cubesky-mvn.github.io'
+        }
+    }
+}

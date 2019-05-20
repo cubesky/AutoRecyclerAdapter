@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-
 android {
     compileSdkVersion 27
     defaultConfig {
@@ -26,5 +25,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(':skyrecycleradapter')
+    compileOnly project(':aralib')
+    annotationProcessor project(':aralib_processor')
     implementation 'com.android.support:recyclerview-v7:27.1.1'
+    implementation project(path: ':aralib')
 }
