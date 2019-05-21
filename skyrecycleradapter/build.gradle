@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'digital.wup.android-maven-publish'
 
 group 'party.liyin'
-version '1.0'
+version "$ara_version"
 
 android {
     compileSdkVersion 27

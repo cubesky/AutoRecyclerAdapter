@@ -17,7 +17,7 @@ publishing {
         maven(MavenPublication) {
             groupId 'party.liyin'
             artifactId 'aralib-processor'
-            version '1.0'
+            version "$ara_version"
             from components.java
         }
     }
