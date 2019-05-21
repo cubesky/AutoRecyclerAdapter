@@ -138,6 +138,7 @@ public class ARAProcessor extends AbstractProcessor {
                 .addMethod(MethodSpec.constructorBuilder().addParameter(ClassName.get("android.view", "View"), "itemView").addStatement("super(itemView)").build())
                 .build();
         adapterClass.addType(generalViewHolder);
+        boolean isFirst = true;
         for (Element bindViewElement : bindViewElements) {
             isTransformed = true;
             if (!bindViewElement.getModifiers().contains(Modifier.PUBLIC)) {
@@ -146,13 +147,20 @@ public class ARAProcessor extends AbstractProcessor {
             int layoutId = nextLayoutID++;
             ARABindLayout bindView = bindViewElement.getAnnotation(ARABindLayout.class);
             List<? extends Element> elements = bindViewElement.getEnclosedElements();
-            TypeSpec subClass = generateSubClass(layoutId, bindViewElement, elements, onBindViewHolderCode);
+            TypeSpec subClass = generateSubClass(layoutId, bindViewElement, elements, onBindViewHolderCode, isFirst);
             initLayoutIDBuilder.addStatement("dataLayout.put($L.class, $L)", bindViewElement.asType(), layoutId);
             adapterClass.addType(subClass);
-            onCreateViewHolderCode.beginControlFlow("if (viewType == $L)", layoutId)
-                    .addStatement("return new $N(mInflater.inflate($L, parent, false))", subClass, bindView.value()).endControlFlow();
+            if (isFirst) {
+                isFirst = false;
+                onCreateViewHolderCode.beginControlFlow("if (viewType == $L)", layoutId)
+                        .addStatement("return new $N(mInflater.inflate($L, parent, false))", subClass, bindView.value());
+            } else {
+                onCreateViewHolderCode.nextControlFlow("else if (viewType == $L)", layoutId)
+                        .addStatement("return new $N(mInflater.inflate($L, parent, false))", subClass, bindView.value());
+            }
         }
-        onCreateViewHolderCode.addStatement("return null");
+        onBindViewHolderCode.endControlFlow();
+        onCreateViewHolderCode.endControlFlow().addStatement("return null");
         adapterClass.addField(dataLayout.build());
         onCreateViewHolderBuilder.addCode(onCreateViewHolderCode.build());
         adapterClass.addMethod(onCreateViewHolderBuilder.build());
@@ -212,7 +220,7 @@ public class ARAProcessor extends AbstractProcessor {
         return true;
     }
 
-    private TypeSpec generateSubClass(int layoutId, Element viewElement, List<? extends Element> elements, CodeBlock.Builder onBindViewHolderCode) {
+    private TypeSpec generateSubClass(int layoutId, Element viewElement, List<? extends Element> elements, CodeBlock.Builder onBindViewHolderCode, boolean isFirst) {
         String name = "ARA_" + layoutId + "_" + viewElement.getSimpleName().toString() + "_ViewHolder";
         TypeSpec.Builder subClass = TypeSpec.classBuilder(name)
                 .addModifiers(Modifier.PROTECTED)
@@ -220,7 +228,11 @@ public class ARAProcessor extends AbstractProcessor {
         CodeBlock.Builder constructorCode = CodeBlock.builder();
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addParameter(ClassName.get("android.view", "View"), "itemView");
         constructorCode.addStatement("super(itemView)");
-        onBindViewHolderCode.beginControlFlow("if (holder instanceof $L)", name);
+        if (isFirst) {
+            onBindViewHolderCode.beginControlFlow("if (holder instanceof $L)", name);
+        } else {
+            onBindViewHolderCode.nextControlFlow("else if (holder instanceof $L)", name);
+        }
         for (Element element : elements) {
             ARABind ara = element.getAnnotation(ARABind.class);
             if (ara != null) {
@@ -269,7 +281,7 @@ public class ARAProcessor extends AbstractProcessor {
                 }
             }
         }
-        onBindViewHolderCode.endControlFlow();
+        onBindViewHolderCode.addStatement("return");
         constructor.addCode(constructorCode.build());
         subClass.addMethod(constructor.build());
         return subClass.build();
