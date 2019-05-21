@@ -1,36 +1,18 @@
-apply plugin: 'com.android.library'
-apply plugin: 'digital.wup.android-maven-publish'
-
-android {
-    compileSdkVersion 28
-
-
-    defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
+sourceCompatibility = "7"
+targetCompatibility = "7"
 publishing {
     publications {
-        mavenAar(MavenPublication) {
-            from components.android
+        maven(MavenPublication) {
             groupId 'party.liyin'
             artifactId 'aralib-stub'
             version "$ara_version"
+            from components.java
         }
     }
     repositories {
@@ -38,13 +20,4 @@ publishing {
             url 'D:\\Development\\WorkSpace\\GitSpace\\cubesky-mvn.github.io'
         }
     }
-}
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    compileOnly 'com.android.support:recyclerview-v7:28.0.0'
-    compileOnly 'com.android.support:appcompat-v7:28.0.0'
-    compileOnly project(':skyrecycleradapter')
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }

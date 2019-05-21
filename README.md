@@ -15,7 +15,6 @@ After import main library using CubeSky Repo, you need add more library to your 
 ```groovy
 dependencies {
     compileOnly 'party.liyin:aralib:<version>'
-    compileOnly 'party.liyin:aralib-stub:<version>'
     annotationProcessor 'party.liyin:aralib-processor:<version>'
 }
 ```  

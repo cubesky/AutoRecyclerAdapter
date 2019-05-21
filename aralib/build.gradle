@@ -2,6 +2,7 @@ apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    compileOnly project(path: ':aralib_stub')
 }
 
 sourceCompatibility = JavaVersion.VERSION_1_7

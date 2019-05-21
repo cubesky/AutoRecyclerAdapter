@@ -2,7 +2,6 @@ package liyin.party.skyrecycleradapter;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 
@@ -18,14 +17,14 @@ public class SmartRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 
-    @NonNull
+
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 
@@ -44,6 +43,7 @@ public class SmartRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 
+    @SuppressWarnings("WeakerAccess")
     public void addData(List<? extends AutoDataBean> beanList) {
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
