@@ -1,1 +1,1 @@
-include ':app', ':skyrecycleradapter', ':aralib', ':aralib_processor'
+include ':app', ':skyrecycleradapter', ':aralib', ':aralib_processor', ':aralib_stub'
