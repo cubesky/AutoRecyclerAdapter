@@ -1,7 +1,7 @@
 package liyin.party.skyrecycleradapter;
 
-import android.app.Activity;
+import androidx.appcompat.app.AppCompatActivity;
 
 public abstract class AutoDataBean {
-    protected Activity activity = null;
+    protected AppCompatActivity activity = null;
 }

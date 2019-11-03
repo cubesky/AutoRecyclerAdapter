@@ -7,6 +7,8 @@ This library can help you to control RecyclerView in an easiest way.
 
 This library is under development. You can use this by import [CubeSky Repo](https://cubesky-mvn.github.io)
 
+From version 2.0, SmartRecyclerAdapter moved to AndroidX insteadof AppCompat.  
+
 ## Smart Recycler Adapter  
 Smart Recycler Adapter finished in version 1.0, it use Annotation Processor to auto generate source code when you compile, so it doesn't cause any performanse issue.  
 
@@ -54,6 +56,7 @@ Other methods support by `Auto Recycler Adapter` is also support in `Smart Recyc
 
 ## Auto Recycler Adapter
 Auto Recycler Adapter using Reflection in Runtime to setting value to View. This will cause performance issue. But early then version 1.0 (Not include), you can only use this, I keep it as compatibility.  
+From version 2.0, AutoRecyclerAdapter mark as Deprecated, you should not use this.  
 
 ### How to use
 First, you need a layout. Create a layout file for your data which want to display. Eg. `R.layout.datacard`  

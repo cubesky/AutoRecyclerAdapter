@@ -13,8 +13,6 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -61,18 +59,31 @@ public class ARAProcessor extends AbstractProcessor {
         mElements = env.getElementUtils();
     }
 
+    private static String join(List<String> input) {
+        if (input == null || input.size() <= 0) return "";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < input.size(); i++) {
+            sb.append(input.get(i));
+            // if not the last item
+            if (i != input.size() - 1) {
+                sb.append(",");
+            }
+        }
+        return sb.toString();
+    }
+
     @Override
     public boolean process(Set<? extends TypeElement> annoations, RoundEnvironment roundEnv) {
         Set<? extends Element> bindViewElements = roundEnv.getElementsAnnotatedWith(ARABindLayout.class);
         if (isTransformed) return false;
         TypeSpec.Builder adapterClass = TypeSpec.classBuilder(araName)
                 .addModifiers(Modifier.PUBLIC)
-                .addField(FieldSpec.builder(ClassName.get("android.app", "Activity"), "activity").addModifiers(Modifier.PRIVATE).initializer("null").build())
+                .addField(FieldSpec.builder(ClassName.get("androidx.appcompat.app", "AppCompatActivity"), "activity").addModifiers(Modifier.PRIVATE).initializer("null").build())
                 .addField(FieldSpec.builder(ClassName.get("android.content", "Context"), "context").addModifiers(Modifier.PRIVATE).build())
                 .addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get("java.util", "ArrayList"), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "dataList")
                         .initializer("new ArrayList<>()").addModifiers(Modifier.PRIVATE)
                         .build())
-                .superclass(ParameterizedTypeName.get(ClassName.get("android.support.v7.widget.RecyclerView", "Adapter"), ClassName.get("android.support.v7.widget.RecyclerView", "ViewHolder")));
+                .superclass(ParameterizedTypeName.get(ClassName.get("androidx.recyclerview.widget.RecyclerView", "Adapter"), ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder")));
         TypeSpec layoutIDBean = TypeSpec.classBuilder("LayoutIDBean")
                 .addField(FieldSpec.builder(int.class, "layout").build())
                 .addField(FieldSpec.builder(String.class, "viewHolder").build())
@@ -91,7 +102,7 @@ public class ARAProcessor extends AbstractProcessor {
                 .addModifiers(Modifier.PUBLIC)
                 .build();
         MethodSpec constructorTwoBuilder = MethodSpec.constructorBuilder()
-                .addParameter(ParameterSpec.builder(ClassName.get("android.app", "Activity"), "activity").build())
+                .addParameter(ParameterSpec.builder(ClassName.get("androidx.appcompat.app", "AppCompatActivity"), "activity").build())
                 .addCode(CodeBlock.builder().addStatement("this.context = activity").addStatement("this.activity = activity").addStatement("initLayoutID()").build())
                 .addModifiers(Modifier.PUBLIC)
                 .build();
@@ -104,7 +115,7 @@ public class ARAProcessor extends AbstractProcessor {
         MethodSpec.Builder onCreateViewHolderBuilder = MethodSpec.methodBuilder("onCreateViewHolder")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .returns(ClassName.get("android.support.v7.widget.RecyclerView", "ViewHolder"))
+                .returns(ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder"))
                 .addParameter(ParameterSpec.builder(ClassName.get("android.view", "ViewGroup"), "parent").build())
                 .addParameter(int.class, "viewType");
         MethodSpec.Builder getItemCountBuilder = MethodSpec.methodBuilder("getItemCount")
@@ -117,7 +128,7 @@ public class ARAProcessor extends AbstractProcessor {
         MethodSpec.Builder onBindViewHolderBuilder = MethodSpec.methodBuilder("onBindViewHolder")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(void.class)
-                .addParameter(ParameterSpec.builder(ClassName.get("android.support.v7.widget.RecyclerView", "ViewHolder"), "holder").build())
+                .addParameter(ParameterSpec.builder(ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder"), "holder").build())
                 .addParameter(int.class, "position");
         MethodSpec.Builder getItemViewTypeBuilder = MethodSpec.methodBuilder("getItemViewType")
                 .addModifiers(Modifier.PUBLIC)
@@ -134,7 +145,7 @@ public class ARAProcessor extends AbstractProcessor {
         ).addModifiers(Modifier.PRIVATE).initializer("new HashMap<>()");
         TypeSpec generalViewHolder = TypeSpec.classBuilder("GeneralViewHolder")
                 .addModifiers(Modifier.PROTECTED)
-                .superclass(ClassName.get("android.support.v7.widget.RecyclerView", "ViewHolder"))
+                .superclass(ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder"))
                 .addMethod(MethodSpec.constructorBuilder().addParameter(ClassName.get("android.view", "View"), "itemView").addStatement("super(itemView)").build())
                 .build();
         adapterClass.addType(generalViewHolder);
@@ -224,7 +235,7 @@ public class ARAProcessor extends AbstractProcessor {
         String name = "ARA_" + layoutId + "_" + viewElement.getSimpleName().toString() + "_ViewHolder";
         TypeSpec.Builder subClass = TypeSpec.classBuilder(name)
                 .addModifiers(Modifier.PROTECTED)
-                .superclass(ClassName.get("android.support.v7.widget.RecyclerView", "ViewHolder"));
+                .superclass(ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder"));
         CodeBlock.Builder constructorCode = CodeBlock.builder();
         MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addParameter(ClassName.get("android.view", "View"), "itemView");
         constructorCode.addStatement("super(itemView)");
@@ -259,6 +270,7 @@ public class ARAProcessor extends AbstractProcessor {
                         try {
                             ara.view_param();
                         } catch (MirroredTypesException mte) {
+                            @SuppressWarnings("unchecked")
                             List<DeclaredType> classTypeMirrors = (List<DeclaredType>) mte.getTypeMirrors();
                             for (DeclaredType classTypeMirror : classTypeMirrors) {
                                 TypeElement classTypeElement = (TypeElement) classTypeMirror.asElement();
@@ -271,7 +283,8 @@ public class ARAProcessor extends AbstractProcessor {
                             String t = "(" + arr.get(i) + ")typedBean." + element.getSimpleName() + "[" + i + "]";
                             resultArray.add(t);
                         }
-                        String result = StringUtils.join(resultArray, ",");
+
+                        String result = join(resultArray);
                         onBindViewHolderCode.addStatement("(($L) holder).$L.$L($L)", name, viewFullName, ara.view_method(), result);
                     } else {
                         onBindViewHolderCode.addStatement("(($L) holder).$L.$L((($T)bean).$L)", name, viewFullName, ara.view_method(), viewElement, element.getSimpleName());
