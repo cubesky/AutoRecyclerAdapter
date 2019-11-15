@@ -36,6 +36,7 @@ Then, you need a JavaBean to extends `AutoDataBean` with `ARABind` annotation to
 Instead of old `AutoBind` system, `ARABind` use resource id as `view_id` and use Class as `view_type` to simplify your code. In `ARABind` view_param is optional, it only used with multi parameter method.  
 And then, add `ARABindLayout` annotation to Class to tell adapter witch layout should it use, it will automatically bind to it.  
 `ARALink` give you an access to View component, but if it also bind with `ARABind`, `ARABind` will always override your operation on the same method.   
+**Note:** Avoid to use ARALink to call `set` method.      
 > If you need  `view_param`, please use boxed Object such as Integer and Float instead of int and float.  
 > In `SmartRecyclerAdapter` fields must be public modifier!  
 
@@ -60,21 +61,35 @@ Other methods support by `Auto Recycler Adapter` is also support in `Smart Recyc
 ### SmartRecyclerAdapter unique feature
 These feature doesn't work with deprecated Auto Recycler Adapter!  
 
+#### ARALink
+`ARALink` annotation will automatically bind View to its variable. This give you temporary access to the View.   .
+When variable in your bean is ready, boolean variable `isInit` in AutoDataBean superclass will set to `true`. If you access `ARALink` variable before `isInit` is set to `true`, you will got a `NullPointerException` due to variable is unset. 
+
 #### SmartLayoutEnum
 SmartLayoutEnum is an enum viewType integer wrapper. Every `AutoDataBean` is named with its layoudType Integer in this enum class.  
 
 #### getItemWithType
-This method will return a `AutoBeanWithType` class, it contains `SmartLayoutEnum` with its type and `AutoDataBean` itself.  
+This method will return a `AutoBeanWithType` class, it contains `SmartLayoutEnum` with its type and `AutoDataBean` itself.   
 ```java
 SmartRecyclerAdapter.AutoBeanWithType beanWithType = autoRecyclerAdapter.getItemWithType(0);
 if (beanWithType.getType() == SmartRecyclerAdapter.SmartLayoutEnum.OneDataBean) {
-    ((OneDataBean)beanWithType.getBean()).textView.setText("1TT");
+    ((OneDataBean)beanWithType.getBean()).textView.getText();
 }
 ```
+
+#### MeasuredRecyclerView (Experimental)
+A RecyclerView which can auto calculate item columns count.    
+
+#### RecyclerHelper 
+Easy to get LayoutManager, nothing special.    
+
+#### Auto Javadoc
+Now annotation processor will auto generate Javadoc. If you doesn't active annotation processor, you will get warning in Javadoc.
 
 ## Auto Recycler Adapter
 Auto Recycler Adapter using Reflection in Runtime to setting value to View. This will cause performance issue. But early then version 1.0 (Not include), you can only use this, I keep it as compatibility.  
 From version 2.0, AutoRecyclerAdapter mark as Deprecated, you should not use this.  
+AutoRecyclerAdapter will removed in 2.5.  
 
 ### How to use
 First, you need a layout. Create a layout file for your data which want to display. Eg. `R.layout.datacard`  

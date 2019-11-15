@@ -44,12 +44,12 @@ import party.liyin.aralib.ARALink;
 
 @AutoService(Processor.class)
 public class ARAProcessor extends AbstractProcessor {
-    boolean isTransformed = false;
-    private Filer mFiler;
-    private Messager mMessager;
+    boolean isTransformed = false; //If Transformed is fired
+    private Filer mFiler; //Java File Writer
+    private Messager mMessager; //Message for annotation processor
     private Types mTypes;
     private Elements mElements;
-    private int nextLayoutID = 0;
+    private int nextLayoutID = 0; //Layout ID for SmartRecyclerAdapter
     private String packageName = "liyin.party.skyrecycleradapter";
     private String araName = "SmartRecyclerAdapter";
 
@@ -62,6 +62,12 @@ public class ARAProcessor extends AbstractProcessor {
         mElements = env.getElementUtils();
     }
 
+    /**
+     * Join String with comma
+     *
+     * @param input List of String
+     * @return String joined with comma
+     */
     private static String join(List<String> input) {
         if (input == null || input.size() <= 0) return "";
         StringBuilder sb = new StringBuilder();
@@ -86,11 +92,17 @@ public class ARAProcessor extends AbstractProcessor {
                 .addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get("java.util", "ArrayList"), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "dataList")
                         .initializer("new ArrayList<>()").addModifiers(Modifier.PRIVATE)
                         .build())
-                .superclass(ParameterizedTypeName.get(ClassName.get("androidx.recyclerview.widget.RecyclerView", "Adapter"), ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder")));
+                .superclass(ParameterizedTypeName.get(ClassName.get("androidx.recyclerview.widget.RecyclerView", "Adapter"), ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder")))
+                .addJavadoc("SmartRecyclerAdapter (Generated)\n");
         TypeSpec.Builder layoutTypeEnum = TypeSpec.enumBuilder("SmartLayoutEnum")
                 .addModifiers(Modifier.PUBLIC)
                 .addField(FieldSpec.builder(int.class, "value", Modifier.FINAL, Modifier.PRIVATE).build())
-                .addMethod(MethodSpec.constructorBuilder().addParameter(int.class, "layoutType", Modifier.FINAL).addStatement("this.value = layoutType").build());
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addParameter(int.class, "layoutType", Modifier.FINAL)
+                        .addStatement("this.value = layoutType")
+                        .addJavadoc("Layout Enum to Integer ID constructor\n")
+                        .build())
+                .addJavadoc("Enum for Layout ID\n");
         TypeSpec autoBeanWithType = TypeSpec.classBuilder("AutoBeanWithType")
                 .addModifiers(Modifier.PUBLIC)
                 .addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(WeakReference.class), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "bean").build())
@@ -101,21 +113,31 @@ public class ARAProcessor extends AbstractProcessor {
                         .addParameter(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum"), "type")
                         .addStatement("this.bean = bean")
                         .addStatement("this.type = type")
+                        .addJavadoc("Create Bean-Type Triple\n")
+                        .addJavadoc("@param bean WeakReference AutoDataBean\n")
+                        .addJavadoc("@param type TypeEnum\n")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("getType")
                         .addModifiers(Modifier.PUBLIC)
                         .returns(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum"))
                         .addStatement("return this.type")
+                        .addJavadoc("Return AutoDataBean type in Enum\n")
+                        .addJavadoc("@return Layout Enum Type\n")
                         .build())
                 .addMethod(MethodSpec.methodBuilder("getBean")
                         .addModifiers(Modifier.PUBLIC)
                         .returns(ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean"))
                         .addStatement("return this.bean.get()")
+                        .addJavadoc("Return AutoDataBean\n")
+                        .addJavadoc("@return AutoDataBean\n")
                         .build())
                 .build();
         MethodSpec.Builder layoutTypeEnumFromLayoutTypeInt = MethodSpec.methodBuilder("fromLayoutTypeInt")
                 .addParameter(ParameterSpec.builder(int.class, "layoutId").build())
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addJavadoc("Return Layout Type Enum from LayoutView ID in SmartRecyclerAdapter\n")
+                .addJavadoc("@param layoutId LayoutID Integer\n")
+                .addJavadoc("@return SmartLayoutEnum\n")
                 .beginControlFlow("switch (layoutId)");
         TypeSpec layoutIDBean = TypeSpec.classBuilder("LayoutIDBean")
                 .addField(FieldSpec.builder(int.class, "layout").build())
@@ -133,11 +155,15 @@ public class ARAProcessor extends AbstractProcessor {
                 .addParameter(ParameterSpec.builder(ClassName.get("android.content", "Context"), "context").build())
                 .addCode(CodeBlock.builder().addStatement("this.context = context").addStatement("initLayoutID()").build())
                 .addModifiers(Modifier.PUBLIC)
+                .addJavadoc("Create SmartRecyclerAdapter with context. This method can not active activity variable in AutoDataBean superclass.\n")
+                .addJavadoc("@param context Context\n")
                 .build();
         MethodSpec constructorTwoBuilder = MethodSpec.constructorBuilder()
                 .addParameter(ParameterSpec.builder(ClassName.get("androidx.appcompat.app", "AppCompatActivity"), "activity").build())
                 .addCode(CodeBlock.builder().addStatement("this.context = activity").addStatement("this.activity = activity").addStatement("initLayoutID()").build())
                 .addModifiers(Modifier.PUBLIC)
+                .addJavadoc("Create SmartRecyclerAdapter with context.\n")
+                .addJavadoc("@param activity Activity\n")
                 .build();
         adapterClass.addMethod(constructorOneBuilder).addMethod(constructorTwoBuilder);
         CodeBlock.Builder onCreateViewHolderCode = CodeBlock.builder()
@@ -154,6 +180,8 @@ public class ARAProcessor extends AbstractProcessor {
         MethodSpec.Builder getItemCountBuilder = MethodSpec.methodBuilder("getItemCount")
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("return dataList.size()")
+                .addJavadoc("Return the count of data\n")
+                .addJavadoc("@return Count of Data in SmartRecyclerAdapter\n")
                 .returns(int.class);
         CodeBlock.Builder onBindViewHolderCode = CodeBlock.builder()
                 .addStatement("AutoDataBean bean = dataList.get(position)")
@@ -171,7 +199,10 @@ public class ARAProcessor extends AbstractProcessor {
                         .addStatement("AutoDataBean bean = dataList.get(position)")
                         .addStatement("if (bean instanceof $T) return (($T)bean).layout_type", ClassName.get("liyin.party.skyrecycleradapter", "EmptyDataBean"), ClassName.get("liyin.party.skyrecycleradapter", "EmptyDataBean"))
                         .addStatement("return dataLayout.get(bean.getClass())")
-                        .build());
+                        .build())
+                .addJavadoc("Get ItemViewType from position\n")
+                .addJavadoc("@param position position of data\n")
+                .addJavadoc("@return ViewType ID\n");
         MethodSpec.Builder initLayoutIDBuilder = MethodSpec.methodBuilder("initLayoutID").addModifiers(Modifier.PRIVATE).returns(void.class);
         FieldSpec.Builder dataLayout = FieldSpec.builder(
                 ParameterizedTypeName.get(ClassName.get("java.util", "HashMap"), ParameterizedTypeName.get(ClassName.get("java.lang", "Class"), WildcardTypeName.subtypeOf(TypeVariableName.get("AutoDataBean"))), ClassName.bestGuess(Integer.class.getCanonicalName())), "dataLayout"
@@ -232,34 +263,46 @@ public class ARAProcessor extends AbstractProcessor {
                         .endControlFlow()
                         .addStatement("notifyDataSetChanged()")
                         .build())
+                .addJavadoc("Add Data using AutoDataBean child class\n")
+                .addJavadoc("@param beanList AutoDataBean child class with ARABindLayout\n")
                 .build());
         adapterClass.addMethod(MethodSpec.methodBuilder("addData")
                 .addParameter(ArrayTypeName.of(ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "bean")
                 .varargs(true)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("addData($T.asList(bean))", ClassName.get("java.util", "Arrays"))
+                .addJavadoc("Add Data using AutoDataBean child class\n")
+                .addJavadoc("@param bean AutoDataBean child class with ARABindLayout\n")
                 .build());
         adapterClass.addMethod(MethodSpec.methodBuilder("remove")
                 .addParameter(int.class, "position")
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("dataList.remove(position)")
                 .addStatement("notifyDataSetChanged()")
+                .addJavadoc("Remove data from SmartRecyclerAdapter\n")
+                .addJavadoc("@param position position of data\n")
                 .build());
         adapterClass.addMethod(MethodSpec.methodBuilder("clear")
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("dataList.clear()")
                 .addStatement("notifyDataSetChanged()")
+                .addJavadoc("Clear SmartRecyclerAdapter\n")
                 .build());
         adapterClass.addMethod(MethodSpec.methodBuilder("getItemWithType")
                 .addParameter(int.class, "position")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ClassName.bestGuess(autoBeanWithType.name))
                 .addStatement("return new $L(new $T($L), $L)", ClassName.bestGuess(autoBeanWithType.name), WeakReference.class, "dataList.get(position)", "SmartLayoutEnum.fromLayoutTypeInt(getItemViewType(position))")
+                .addJavadoc("Return AutoDataBean and its LayoutEnum from position\n")
+                .addJavadoc("@param position position of data\n")
+                .addJavadoc("@return AutoBeanWithType\n")
                 .build());
         adapterClass.addMethod(MethodSpec.methodBuilder("getItemList")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ParameterizedTypeName.get(ClassName.get(ArrayList.class), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")))
                 .addStatement("return dataList")
+                .addJavadoc("Get raw data list store in SmartRecyclerAdapter. If you modify this list, don't forget to class notifyDataSetChanged()\n")
+                .addJavadoc("@return ArrayList of data\n")
                 .build());
 
         layoutTypeEnum.addMethod(layoutTypeEnumFromLayoutTypeInt.addCode("default:\n").addStatement("$>return null$<").endControlFlow().returns(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum")).build());

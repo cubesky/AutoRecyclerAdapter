@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
                 new ThreeDataBean(R.drawable.ic_battery_charging_full_black_24dp), new TwoDataBean("4B"), new TwoDataBean("5B"), new ThreeDataBean(R.drawable.ic_assessment_black_24dp));
         autoRecyclerAdapter.addData(EmptyDataBean.getEmptyLayout(R.layout.layout_empty_one), EmptyDataBean.getEmptyLayout(R.layout.layout_empty_two), EmptyDataBean.getEmptyLayout(R.layout.layout_empty_one));
         autoRecyclerAdapter.addData(new OuterBean("1O", TypedValue.COMPLEX_UNIT_PX, 50f));
+
         new Thread(new Runnable() {
             @Override
             public void run() {
