@@ -35,6 +35,7 @@ recyclerView.setAdapter(adapter);
 Then, you need a JavaBean to extends `AutoDataBean` with `ARABind` annotation to bind your data to the view.    
 Instead of old `AutoBind` system, `ARABind` use resource id as `view_id` and use Class as `view_type` to simplify your code. In `ARABind` view_param is optional, it only used with multi parameter method.  
 And then, add `ARABindLayout` annotation to Class to tell adapter witch layout should it use, it will automatically bind to it.  
+`ARALink` give you an access to View component, but if it also bind with `ARABind`, `ARABind` will always override your operation on the same method.   
 > If you need  `view_param`, please use boxed Object such as Integer and Float instead of int and float.  
 > In `SmartRecyclerAdapter` fields must be public modifier!  
 
@@ -45,6 +46,8 @@ public class DataCardBean extends AutoDataBean {
         public String data;
         @ARABind(view_id = R.id.textView, view_type = TextView.class, view_method = "setTextSize", view_param = { Integer.class, Float.class })
         public Object[] size;
+        @ARALink(view_id = R.id.textView2)
+        public TextView textView;
         DataCardBean(String data, int unit, float size) {
             this.data = data;
             this.size = new Object[]{unit, size};
@@ -53,6 +56,21 @@ public class DataCardBean extends AutoDataBean {
 ```
 
 Other methods support by `Auto Recycler Adapter` is also support in `Smart Recycler Adapter`. You can use them as usual.   
+
+### SmartRecyclerAdapter unique feature
+These feature doesn't work with deprecated Auto Recycler Adapter!  
+
+#### SmartLayoutEnum
+SmartLayoutEnum is an enum viewType integer wrapper. Every `AutoDataBean` is named with its layoudType Integer in this enum class.  
+
+#### getItemWithType
+This method will return a `AutoBeanWithType` class, it contains `SmartLayoutEnum` with its type and `AutoDataBean` itself.  
+```java
+SmartRecyclerAdapter.AutoBeanWithType beanWithType = autoRecyclerAdapter.getItemWithType(0);
+if (beanWithType.getType() == SmartRecyclerAdapter.SmartLayoutEnum.OneDataBean) {
+    ((OneDataBean)beanWithType.getBean()).textView.setText("1TT");
+}
+```
 
 ## Auto Recycler Adapter
 Auto Recycler Adapter using Reflection in Runtime to setting value to View. This will cause performance issue. But early then version 1.0 (Not include), you can only use this, I keep it as compatibility.  

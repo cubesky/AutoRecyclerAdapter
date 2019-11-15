@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,9 @@ public class SmartRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 
-
+    public AutoBeanWithType getItemWithType(int position) {
+        throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
+    }
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
@@ -62,4 +65,36 @@ public class SmartRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 
+    public enum SmartLayoutEnum {
+        ;
+
+        private final int value;
+
+        SmartLayoutEnum(final int layoutType) {
+            this.value = layoutType;
+        }
+
+        public static SmartLayoutEnum fromLayoutTypeInt(int layoutId) {
+            throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
+        }
+    }
+
+    public class AutoBeanWithType {
+        WeakReference<AutoDataBean> bean;
+
+        SmartLayoutEnum type;
+
+        private AutoBeanWithType(WeakReference<AutoDataBean> bean, SmartLayoutEnum type) {
+            this.bean = bean;
+            this.type = type;
+        }
+
+        public SmartLayoutEnum getType() {
+            return this.type;
+        }
+
+        public AutoDataBean getBean() {
+            return this.bean.get();
+        }
+    }
 }

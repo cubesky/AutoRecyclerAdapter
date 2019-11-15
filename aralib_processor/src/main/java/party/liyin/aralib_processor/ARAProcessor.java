@@ -14,7 +14,9 @@ import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -38,6 +40,7 @@ import javax.tools.Diagnostic;
 
 import party.liyin.aralib.ARABind;
 import party.liyin.aralib.ARABindLayout;
+import party.liyin.aralib.ARALink;
 
 @AutoService(Processor.class)
 public class ARAProcessor extends AbstractProcessor {
@@ -84,6 +87,36 @@ public class ARAProcessor extends AbstractProcessor {
                         .initializer("new ArrayList<>()").addModifiers(Modifier.PRIVATE)
                         .build())
                 .superclass(ParameterizedTypeName.get(ClassName.get("androidx.recyclerview.widget.RecyclerView", "Adapter"), ClassName.get("androidx.recyclerview.widget.RecyclerView", "ViewHolder")));
+        TypeSpec.Builder layoutTypeEnum = TypeSpec.enumBuilder("SmartLayoutEnum")
+                .addModifiers(Modifier.PUBLIC)
+                .addField(FieldSpec.builder(int.class, "value", Modifier.FINAL, Modifier.PRIVATE).build())
+                .addMethod(MethodSpec.constructorBuilder().addParameter(int.class, "layoutType", Modifier.FINAL).addStatement("this.value = layoutType").build());
+        TypeSpec autoBeanWithType = TypeSpec.classBuilder("AutoBeanWithType")
+                .addModifiers(Modifier.PUBLIC)
+                .addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(WeakReference.class), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "bean").build())
+                .addField(FieldSpec.builder(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum"), "type").build())
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(Modifier.PRIVATE)
+                        .addParameter(ParameterizedTypeName.get(ClassName.get(WeakReference.class), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "bean")
+                        .addParameter(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum"), "type")
+                        .addStatement("this.bean = bean")
+                        .addStatement("this.type = type")
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("getType")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum"))
+                        .addStatement("return this.type")
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("getBean")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean"))
+                        .addStatement("return this.bean.get()")
+                        .build())
+                .build();
+        MethodSpec.Builder layoutTypeEnumFromLayoutTypeInt = MethodSpec.methodBuilder("fromLayoutTypeInt")
+                .addParameter(ParameterSpec.builder(int.class, "layoutId").build())
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .beginControlFlow("switch (layoutId)");
         TypeSpec layoutIDBean = TypeSpec.classBuilder("LayoutIDBean")
                 .addField(FieldSpec.builder(int.class, "layout").build())
                 .addField(FieldSpec.builder(String.class, "viewHolder").build())
@@ -161,6 +194,8 @@ public class ARAProcessor extends AbstractProcessor {
             TypeSpec subClass = generateSubClass(layoutId, bindViewElement, elements, onBindViewHolderCode, isFirst);
             initLayoutIDBuilder.addStatement("dataLayout.put($L.class, $L)", bindViewElement.asType(), layoutId);
             adapterClass.addType(subClass);
+            layoutTypeEnum.addEnumConstant(bindViewElement.getSimpleName().toString(), TypeSpec.anonymousClassBuilder("$L", layoutId).build());
+            layoutTypeEnumFromLayoutTypeInt.addCode("case $L:\n", layoutId).addStatement("$>return $L.$L$<", "SmartLayoutEnum", bindViewElement.getSimpleName().toString());
             if (isFirst) {
                 isFirst = false;
                 onCreateViewHolderCode.beginControlFlow("if (viewType == $L)", layoutId)
@@ -215,11 +250,21 @@ public class ARAProcessor extends AbstractProcessor {
                 .addStatement("dataList.clear()")
                 .addStatement("notifyDataSetChanged()")
                 .build());
+        adapterClass.addMethod(MethodSpec.methodBuilder("getItemWithType")
+                .addParameter(int.class, "position")
+                .addModifiers(Modifier.PUBLIC)
+                .returns(ClassName.bestGuess(autoBeanWithType.name))
+                .addStatement("return new $L(new $T($L), $L)", ClassName.bestGuess(autoBeanWithType.name), WeakReference.class, "dataList.get(position)", "SmartLayoutEnum.fromLayoutTypeInt(getItemViewType(position))")
+                .build());
         adapterClass.addMethod(MethodSpec.methodBuilder("getItemList")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ParameterizedTypeName.get(ClassName.get(ArrayList.class), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")))
                 .addStatement("return dataList")
                 .build());
+
+        layoutTypeEnum.addMethod(layoutTypeEnumFromLayoutTypeInt.addCode("default:\n").addStatement("$>return null$<").endControlFlow().returns(ClassName.get(packageName, araName).nestedClass("SmartLayoutEnum")).build());
+        adapterClass.addType(layoutTypeEnum.build());
+        adapterClass.addType(autoBeanWithType);
 
         JavaFile javaFile = JavaFile.builder(packageName, adapterClass.build()).build();
         try {
@@ -232,6 +277,7 @@ public class ARAProcessor extends AbstractProcessor {
     }
 
     private TypeSpec generateSubClass(int layoutId, Element viewElement, List<? extends Element> elements, CodeBlock.Builder onBindViewHolderCode, boolean isFirst) {
+        HashSet<Integer> hasARAView = new HashSet<>();
         String name = "ARA_" + layoutId + "_" + viewElement.getSimpleName().toString() + "_ViewHolder";
         TypeSpec.Builder subClass = TypeSpec.classBuilder(name)
                 .addModifiers(Modifier.PROTECTED)
@@ -259,6 +305,7 @@ public class ARAProcessor extends AbstractProcessor {
                 ClassName cName = ClassName.bestGuess(qualifiedSuperClassName);
                 String viewFullName = "view_" + ara.view_id() + "_" + ara.view_method();
                 subClass.addField(FieldSpec.builder(cName, viewFullName).build());
+                hasARAView.add(ara.view_id());
                 constructorCode.addStatement("$L = ($T)itemView.findViewById($L)", viewFullName, cName, ara.view_id());
                 if (!element.getModifiers().contains(Modifier.PUBLIC)) {
                     mMessager.printMessage(Diagnostic.Kind.ERROR, "Only support PUBLIC Modifier");
@@ -292,8 +339,30 @@ public class ARAProcessor extends AbstractProcessor {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+
+            }
+
+            ARALink link = element.getAnnotation(ARALink.class);
+            if (link != null) {
+                ClassName cName = ClassName.bestGuess(element.asType().toString());
+                String viewFullName = "view_" + link.view_id();
+                subClass.addField(FieldSpec.builder(cName, viewFullName).build());
+                constructorCode
+                        .addStatement("$L = ($T)itemView.findViewById($L)", viewFullName, cName, link.view_id());
+                if (hasARAView.contains(link.view_id())) {
+                    mMessager.printMessage(Diagnostic.Kind.WARNING, "Use ARABind and ARALink on the same component isn't a good idea. ARABind will always override the same method.");
+                }
+                if (!element.getModifiers().contains(Modifier.PUBLIC)) {
+                    mMessager.printMessage(Diagnostic.Kind.ERROR, "Only support PUBLIC Modifier");
+                }
+                try {
+                    onBindViewHolderCode.addStatement("(($T)bean).$L = (($L) holder).$L", viewElement, element.getSimpleName(), name, viewFullName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
+        onBindViewHolderCode.addStatement("bean.isInit = true");
         onBindViewHolderCode.addStatement("return");
         constructor.addCode(constructorCode.build());
         subClass.addMethod(constructor.build());
