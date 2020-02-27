@@ -87,7 +87,7 @@ public class ARAProcessor extends AbstractProcessor {
         if (isTransformed) return false;
         TypeSpec.Builder adapterClass = TypeSpec.classBuilder(araName)
                 .addModifiers(Modifier.PUBLIC)
-                .addField(FieldSpec.builder(ClassName.get("androidx.appcompat.app", "AppCompatActivity"), "activity").addModifiers(Modifier.PRIVATE).initializer("null").build())
+                .addField(FieldSpec.builder(ClassName.get("android.app", "Activity"), "activity").addModifiers(Modifier.PRIVATE).initializer("null").build())
                 .addField(FieldSpec.builder(ClassName.get("android.content", "Context"), "context").addModifiers(Modifier.PRIVATE).build())
                 .addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get("java.util", "ArrayList"), ClassName.get("liyin.party.skyrecycleradapter", "AutoDataBean")), "dataList")
                         .initializer("new ArrayList<>()").addModifiers(Modifier.PRIVATE)
@@ -159,7 +159,7 @@ public class ARAProcessor extends AbstractProcessor {
                 .addJavadoc("@param context Context\n")
                 .build();
         MethodSpec constructorTwoBuilder = MethodSpec.constructorBuilder()
-                .addParameter(ParameterSpec.builder(ClassName.get("androidx.appcompat.app", "AppCompatActivity"), "activity").build())
+                .addParameter(ParameterSpec.builder(ClassName.get("android.app", "Activity"), "activity").build())
                 .addCode(CodeBlock.builder().addStatement("this.context = activity").addStatement("this.activity = activity").addStatement("initLayoutID()").build())
                 .addModifiers(Modifier.PUBLIC)
                 .addJavadoc("Create SmartRecyclerAdapter with context.\n")

@@ -1,10 +1,10 @@
 package liyin.party.skyrecycleradapter;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.ViewGroup;
 
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.lang.ref.WeakReference;
@@ -39,7 +39,7 @@ public class SmartRecyclerAdapter extends RecyclerView.Adapter<RecyclerView.View
      * Create SmartRecyclerAdapter with context.
      * @param activity Activity
      */
-    public SmartRecyclerAdapter(AppCompatActivity activity) {
+    public SmartRecyclerAdapter(Activity activity) {
         throw new RuntimeException("Stub! You need annotation processor to enable SmartRecyclerAdapter!");
     }
 

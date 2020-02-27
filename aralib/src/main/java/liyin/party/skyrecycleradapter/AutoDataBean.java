@@ -1,6 +1,6 @@
 package liyin.party.skyrecycleradapter;
 
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
 
 /**
  * Abstract AutoDataBean, the superclass for all DataBean used in SmartRecyclerAdapter
@@ -13,5 +13,5 @@ public abstract class AutoDataBean {
     /**
      * Activity which this bean is shown.
      */
-    protected AppCompatActivity activity = null;
+    protected Activity activity = null;
 }

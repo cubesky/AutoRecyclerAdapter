@@ -27,6 +27,6 @@ dependencies {
     implementation project(':skyrecycleradapter')
     compileOnly project(':aralib')
     annotationProcessor project(':aralib_processor')
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation project(path: ':aralib')
 }
